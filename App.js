@@ -40,8 +40,12 @@ import BleModule from './BleModule';
 GLOBAL.BluetoothManager = new BleModule();
 let TimerMixin = require('react-timer-mixin');
 GLOBAL.index_ble = '';
+GLOBAL.index_receive_char1 = '';
+GLOBAL.index_receive_char6 = '';
 GLOBAL.device = '';
-
+GLOBAL.ask_Device_State = null;
+GLOBAL.receive_Device_State_Inter = null;
+GLOBAL.request_Queue = new Array();
 export default class App extends Component<{}> {
 
     render() {
@@ -373,14 +377,22 @@ class testBlueTooth extends Component {
             writeData: '',
             receiveData: '',
             readData: '',
+            readData6: '',
             isMonitoring: false,
-        }
+        };
+        this.request = {
+            data: '',
+            request_Type: '',
+            index: '',
+        };
         this.bluetoothReceiveData = [];  //蓝牙接收的数据缓存
         this.deviceMap = new Map();
         this.char6 = '0000FFF6-0000-1000-8000-00805F9B34FB';//发数据
         this.char1 = '0000FFF1-0000-1000-8000-00805F9B34FB';//收数据
         this.timer = null;
         this.testSendData = 1;
+        this.ask_Device_State_char = 'e7e701eeff';
+        this.count = 0;
 
     }
 
@@ -392,6 +404,78 @@ class testBlueTooth extends Component {
         this.connectPeripheralListener = BluetoothManager.addListener('BleManagerConnectPeripheral', this.handleConnectPeripheral);
         this.disconnectPeripheralListener = BluetoothManager.addListener('BleManagerDisconnectPeripheral', this.handleDisconnectPeripheral);
         this.updateValueListener = BluetoothManager.addListener('BleManagerDidUpdateValueForCharacteristic', this.handleUpdateValue);
+        ask_Device_State = setInterval(
+            () => {
+                if (this.state.isConnected) {
+                    let request = this.request;
+                    if (this.count == 0) {
+                        this.count = 1;
+                        request.data = this.ask_Device_State_char;
+                        request.index = index_ble;
+                        request.request_Type = 1;
+                        request_Queue.push(request);
+                    } else if (this.count == 1) {
+                        this.count = 2;
+                        request.data = '';
+                        request.index = index_receive_char1;
+                        request.request_Type = 0;
+                        request_Queue.push(request);
+                    } else if (this.count == 2) {
+                        this.count = 0;
+                        request.data = '';
+                        request.index = index_receive_char6;
+                        request.request_Type = 2;
+                        request_Queue.push(request);
+                    }
+
+
+                    /*BluetoothManager.writeWithoutResponse(this.ask_Device_State_char, index_ble)
+                        .catch(err => {
+                            clearInterval(ask_Device_State);
+                        });*/
+                }
+            }, 1000);
+        receive_Device_State_Inter = setInterval(
+            () => {
+                if (this.state.isConnected) {
+                    if (request_Queue.length > 0) {
+                        let request = request_Queue.pop();
+                        if (request.request_Type == 1) {
+                            BluetoothManager.writeWithoutResponse(request.data, request.index)
+                                .catch(err => {
+                                    //clearInterval(ask_Device_State);
+                                });
+                        } else if (request.request_Type == 0) {
+                            BluetoothManager.read(request.index)
+                                .then(data => {
+                                    //this.alert(data.toString());
+                                    this.setState({readData: data});
+                                })
+                                .catch(err => {
+                                    //clearInterval(receive_Device_State_Inter);
+                                });
+                        } else if (request.request_Type == 2) {//读fff6
+                            BluetoothManager.read(request.index)
+                                .then(data => {
+                                    //this.alert(data.toString());
+                                    this.setState({readData6: data});
+                                })
+                                .catch(err => {
+                                    //clearInterval(receive_Device_State_Inter);
+                                });
+                        }
+                    }
+
+                    /*BluetoothManager.read(index_receive)
+                        .then(data => {
+                            //this.alert(data.toString());
+                            this.setState({readData: data});
+                        })
+                        .catch(err => {
+                            //clearInterval(receive_Device_State_Inter);
+                        });*/
+                }
+            }, 50);
     }
 
     componentWillUnmount() {
@@ -405,6 +489,8 @@ class testBlueTooth extends Component {
             BluetoothManager.disconnect();  //退出时断开蓝牙连接
         }
         this.timer && clearTimeout(this.timer);
+        ask_Device_State && clearInterval(ask_Device_State);
+        receive_Device_State_Inter && clearInterval(receive_Device_State_Inter);
     }
 
     //蓝牙状态改变
@@ -686,7 +772,7 @@ class testBlueTooth extends Component {
                         {this.renderWriteView('写数据(write)：', '发送', BluetoothManager.writeWithResponseCharacteristicUUID, this.write, this.state.writeData)}
                         {/*{this.renderWriteView('写数据(writeWithoutResponse)：', '发送', BluetoothManager.writeWithoutResponseCharacteristicUUID, this.writeWithoutResponse, this.state.writeData)}*/}
                         {this.renderWriteView('写数据：', '发送', BluetoothManager.writeWithoutResponseCharacteristicUUID, this.writeWithoutResponse, this.state.writeData)}
-                        {this.renderReceiveView('读取的数据：', '读取', BluetoothManager.readCharacteristicUUID, this.read, this.state.readData)}
+                        {this.renderReceiveView('读取的数据', '读取', BluetoothManager.readCharacteristicUUID, this.read, this.state)}
                         {/*{this.renderReceiveView('通知监听接收的数据：' + `${this.state.isMonitoring ? '监听已开启' : '监听未开启'}`, '开启通知', BluetoothManager.nofityCharacteristicUUID, this.notify, this.state.receiveData)}*/}
 
                     </View>
@@ -702,23 +788,32 @@ class testBlueTooth extends Component {
         }
         return (
             <View style={{marginHorizontal: 0, marginTop: 30, flex: 1}}>
-                <Text style={{color: 'red', marginTop: 5}}>{label}</Text>
+                <Text style={{color: 'red', marginTop: 5}}>{label}FFF1:</Text>
                 <Text style={styles.content}>
-                    {state}
+                    {state.readData}
+                </Text>
+                <Text style={{color: 'red', marginTop: 5}}>发送的数据FFF6:</Text>
+                <Text style={styles.content}>
+                    {state.readData6}
                 </Text>
                 {characteristics.map((item, index) => {
                     if (item == this.char6 || item == this.char1) {//读取两个ID
-                        return (
-                            <TouchableOpacity
-                                activeOpacity={0.7}
-                                style={styles.buttonView}
-                                onPress={() => {
-                                    onPress(index)
-                                }}
-                                key={index}>
-                                <Text style={styles.buttonText}>{buttonText} ({item})</Text>
-                            </TouchableOpacity>
-                        )
+                        if (item == this.char1) {
+                            index_receive_char1 = index;
+                        } else if (item == this.char6) {
+                            index_receive_char6 = index;
+                        }
+                        // return (
+                        //     <TouchableOpacity
+                        //         activeOpacity={0.7}
+                        //         style={styles.buttonView}
+                        //         onPress={() => {
+                        //             onPress(index)
+                        //         }}
+                        //         key={index}>
+                        //         <Text style={styles.buttonText}>{buttonText} ({item})</Text>
+                        //     </TouchableOpacity>
+                        // )
                     }
                 })}
             </View>
@@ -815,7 +910,7 @@ class testBlueTooth extends Component {
                                     </View>
                                 );
                                 break;
-                            case 4:
+                            case 4://fre 203x-1
                                 return (
                                     <View key={index} style={[styles.container, {}]}>
                                         <View style={{flex: 18,}}/>
@@ -1538,15 +1633,15 @@ class BasicButton extends Component {
                             break;
                     }
                 }}
-                onLongPress ={()=>{
-                    switch(this.props.name){
+                onLongPress={() => {
+                    switch (this.props.name) {
                         case 'test':
-                        this.inter = setInterval(
-                            () => {
-                                alert("hhhhh");
-                                //BluetoothManager.writeWithoutResponse('e7e70303ff', index_ble);
-                            }, 2000);
-                        break;
+                            this.inter = setInterval(
+                                () => {
+                                    alert("hhhhh");
+                                    //BluetoothManager.writeWithoutResponse('e7e70303ff', index_ble);
+                                }, 2000);
+                            break;
                         default:
                             break;
                     }
@@ -1568,11 +1663,16 @@ class BasicButton extends Component {
     }
 }
 
-class NewTypeButton extends Component {
+class NewTypeButton extends Component {//11
     constructor(props) {
         super(props);
         this.state = {
             pressStatus: false,
+        };
+        this.request = {
+            data: '',
+            request_Type: '',
+            index: '',
         };
     }
 
@@ -1603,70 +1703,121 @@ class NewTypeButton extends Component {
                             if (device == 3) {
                                 BluetoothManager.writeWithoutResponse('e7e70401ff', index_ble);
                             } else if (device == 4) {
-                                BluetoothManager.writeWithoutResponse('e7e70301ff', index_ble);
+                                //BluetoothManager.writeWithoutResponse('e7e70301ff', index_ble);
+                                let request = this.request;
+                                request.data = 'e7e70301ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
                             }
                             break;
                         case 'right':
                             if (device == 3) {
                                 BluetoothManager.writeWithoutResponse('e7e70402ff', index_ble);
                             } else if (device == 4) {
-                                BluetoothManager.writeWithoutResponse('e7e70302ff', index_ble);
+                                //BluetoothManager.writeWithoutResponse('e7e70302ff', index_ble);
+                                let request = this.request;
+                                request.data = 'e7e70302ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
                             }
                             break;
                         case 'up':
                             if (device == 3) {
                                 BluetoothManager.writeWithoutResponse('e7e70403ff', index_ble);
+
                             } else if (device == 4) {
-                                BluetoothManager.writeWithoutResponse('e7e70303ff', index_ble);
+                                //BluetoothManager.writeWithoutResponse('e7e70303ff', index_ble);
+                                let request = this.request;
+                                request.data = 'e7e70303ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
                             }
                             break;
                         case 'down':
                             if (device == 3) {
                                 BluetoothManager.writeWithoutResponse('e7e70404ff', index_ble);
                             } else if (device == 4) {
-                                BluetoothManager.writeWithoutResponse('e7e70304ff', index_ble);
+                                //BluetoothManager.writeWithoutResponse('e7e70304ff', index_ble);
+                                let request = this.request;
+                                request.data = 'e7e70304ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
                             }
                             break;
                         case 'leftAng':
                             if (device == 3) {
                                 BluetoothManager.writeWithoutResponse('e7e70405ff', index_ble);
                             } else if (device == 4) {
-                                BluetoothManager.writeWithoutResponse('e7e70305ff', index_ble);
+                                //BluetoothManager.writeWithoutResponse('e7e70305ff', index_ble);
+                                let request = this.request;
+                                request.data = 'e7e70305ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
                             }
                             break;
                         case 'rightAng':
                             if (device == 3) {
                                 BluetoothManager.writeWithoutResponse('e7e70406ff', index_ble);
                             } else if (device == 4) {
-                                BluetoothManager.writeWithoutResponse('e7e70306ff', index_ble);
+                                //BluetoothManager.writeWithoutResponse('e7e70306ff', index_ble);
+                                let request = this.request;
+                                request.data = 'e7e70306ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
                             }
                             break;
                         case 'qinxie':
                             if (device == 3) {
                                 BluetoothManager.writeWithoutResponse('e7e70407ff', index_ble);
                             } else if (device == 4) {
-                                BluetoothManager.writeWithoutResponse('e7e70307ff', index_ble);
+                                //BluetoothManager.writeWithoutResponse('e7e70307ff', index_ble);
+                                let request = this.request;
+                                request.data = 'e7e70307ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
                             }
                             break;
                         case 'manu':
                             if (device == 3) {
                                 BluetoothManager.writeWithoutResponse('e7e70408ff', index_ble);
                             } else if (device == 4) {
-                                BluetoothManager.writeWithoutResponse('e7e70308ff', index_ble);
+                                //BluetoothManager.writeWithoutResponse('e7e70308ff', index_ble);
+                                let request = this.request;
+                                request.data = 'e7e70308ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
                             }
                             break;
                         case 'scan10':
                             if (device == 3) {
                                 BluetoothManager.writeWithoutResponse('e7e70409ff', index_ble);
                             } else if (device == 4) {
-                                BluetoothManager.writeWithoutResponse('e7e70309ff', index_ble);
+                                //BluetoothManager.writeWithoutResponse('e7e70309ff', index_ble);
+                                let request = this.request;
+                                request.data = 'e7e70309ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
                             }
                             break;
                         case 'round600':
                             if (device == 3) {
                                 BluetoothManager.writeWithoutResponse('e7e7040aff', index_ble);
                             } else if (device == 4) {
-                                BluetoothManager.writeWithoutResponse('e7e7030aff', index_ble);
+                                //BluetoothManager.writeWithoutResponse('e7e7030aff', index_ble);
+                                let request = this.request;
+                                request.data = 'e7e7030aff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
                             }
                             break;
                         default:
@@ -1686,8 +1837,13 @@ class NewTypeButton extends Component {
                                 }
                                 this.inter = setInterval(
                                     () => {
-                                        BluetoothManager.writeWithoutResponse('e7e70301ff', index_ble);
-                                    }, 100);
+                                        //BluetoothManager.writeWithoutResponse('e7e70301ff', index_ble);
+                                        let request = this.request;
+                                        request.data = 'e7e70301ff';
+                                        request.index = index_ble;
+                                        request.request_Type = 1;
+                                        request_Queue.push(request);
+                                    }, 200);
                             }
                             break;
                         case 'right':
@@ -1700,8 +1856,13 @@ class NewTypeButton extends Component {
                                 }
                                 this.inter = setInterval(
                                     () => {
-                                        BluetoothManager.writeWithoutResponse('e7e70302ff', index_ble);
-                                    }, 100);
+                                        //BluetoothManager.writeWithoutResponse('e7e70302ff', index_ble);
+                                        let request = this.request;
+                                        request.data = 'e7e70302ff';
+                                        request.index = index_ble;
+                                        request.request_Type = 1;
+                                        request_Queue.push(request);
+                                    }, 200);
                             }
                             break;
                         case 'up':
@@ -1714,8 +1875,13 @@ class NewTypeButton extends Component {
                                 }
                                 this.inter = setInterval(
                                     () => {
-                                        BluetoothManager.writeWithoutResponse('e7e70303ff', index_ble);
-                                    }, 100);
+                                        //BluetoothManager.writeWithoutResponse('e7e70303ff', index_ble);
+                                        let request = this.request;
+                                        request.data = 'e7e70303ff';
+                                        request.index = index_ble;
+                                        request.request_Type = 1;
+                                        request_Queue.push(request);
+                                    }, 200);
                             }
                             break;
                         case 'down':
@@ -1728,8 +1894,13 @@ class NewTypeButton extends Component {
                                 }
                                 this.inter = setInterval(
                                     () => {
-                                        BluetoothManager.writeWithoutResponse('e7e70304ff', index_ble);
-                                    }, 100);
+                                        //BluetoothManager.writeWithoutResponse('e7e70304ff', index_ble);
+                                        let request = this.request;
+                                        request.data = 'e7e70304ff';
+                                        request.index = index_ble;
+                                        request.request_Type = 1;
+                                        request_Queue.push(request);
+                                    }, 200);
                             }
                             break;
                         case 'leftAng':
@@ -1742,8 +1913,13 @@ class NewTypeButton extends Component {
                                 }
                                 this.inter = setInterval(
                                     () => {
-                                        BluetoothManager.writeWithoutResponse('e7e70305ff', index_ble);
-                                    }, 100);
+                                        //BluetoothManager.writeWithoutResponse('e7e70305ff', index_ble);
+                                        let request = this.request;
+                                        request.data = 'e7e70305ff';
+                                        request.index = index_ble;
+                                        request.request_Type = 1;
+                                        request_Queue.push(request);
+                                    }, 200);
                             }
                             break;
                         case 'rightAng':
@@ -1756,8 +1932,13 @@ class NewTypeButton extends Component {
                                 }
                                 this.inter = setInterval(
                                     () => {
-                                        BluetoothManager.writeWithoutResponse('e7e70306ff', index_ble);
-                                    }, 100);
+                                        //BluetoothManager.writeWithoutResponse('e7e70306ff', index_ble);
+                                        let request = this.request;
+                                        request.data = 'e7e70306ff';
+                                        request.index = index_ble;
+                                        request.request_Type = 1;
+                                        request_Queue.push(request);
+                                    }, 200);
                             }
                             break;
                         case 'qinxie':
@@ -2012,14 +2193,6 @@ const styles = StyleSheet.create({
         marginBottom: 15,
     },
     textInput: {
-        paddingLeft: 5,
-        paddingRight: 5,
-        backgroundColor: 'white',
-        height: 50,
-        fontSize: 16,
-        flex: 1,
-    },
-    testgit: {
         paddingLeft: 5,
         paddingRight: 5,
         backgroundColor: 'white',
