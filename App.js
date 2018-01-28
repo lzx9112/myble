@@ -2019,5 +2019,13 @@ const styles = StyleSheet.create({
         fontSize: 16,
         flex: 1,
     },
+    testgit: {
+        paddingLeft: 5,
+        paddingRight: 5,
+        backgroundColor: 'white',
+        height: 50,
+        fontSize: 16,
+        flex: 1,
+    },
 
 });
