@@ -425,7 +425,7 @@ class testBlueTooth extends Component {
                         request.data = '';
                         request.index = index_receive_char6;
                         request.request_Type = 2;
-                        request_Queue.push(request);
+                        //request_Queue.push(request);
                     }
 
 
@@ -441,7 +441,7 @@ class testBlueTooth extends Component {
                     if (request_Queue.length > 0) {
                         let request = request_Queue.pop();
                         if (request.request_Type == 1) {
-                            BluetoothManager.writeWithoutResponse(request.data, request.index)
+                            BluetoothManager.write(request.data, request.index)
                                 .catch(err => {
                                     //clearInterval(ask_Device_State);
                                 });
@@ -1545,88 +1545,88 @@ class BasicButton extends Component {
                             break;
                         case 'Remote':
                             if (device == 1) {
-                                BluetoothManager.writeWithoutResponse('e7e70201ff', index_ble);
+                                BluetoothManager.write('e7e70201ff', index_ble);
                             } else if (device == 2) {
-                                BluetoothManager.writeWithoutResponse('e7e70101ff', index_ble);
+                                BluetoothManager.write('e7e70101ff', index_ble);
                             }
                             break;
                         case 'unRemote':
                             if (device == 1) {
-                                BluetoothManager.writeWithoutResponse('e7e70202ff', index_ble);
+                                BluetoothManager.write('e7e70202ff', index_ble);
                             } else if (device == 2) {
-                                BluetoothManager.writeWithoutResponse('e7e70102ff', index_ble);
+                                BluetoothManager.write('e7e70102ff', index_ble);
                             }
                             break;
 
                         case 'H_93T_1'://93T-1 laserControl
-                            BluetoothManager.writeWithoutResponse('e7e70203ff', index_ble);
+                            BluetoothManager.write('e7e70203ff', index_ble);
                             break;
                         case 'V1_93T_1':
-                            BluetoothManager.writeWithoutResponse('e7e70204ff', index_ble);
+                            BluetoothManager.write('e7e70204ff', index_ble);
                             break;
                         case 'H360_93T_1':
-                            BluetoothManager.writeWithoutResponse('e7e70205ff', index_ble);
+                            BluetoothManager.write('e7e70205ff', index_ble);
                             break;
                         case 'V2_93T_1':
-                            BluetoothManager.writeWithoutResponse('e7e70206ff', index_ble);
+                            BluetoothManager.write('e7e70206ff', index_ble);
                             break;
                         case 'HV_93T_1':
-                            BluetoothManager.writeWithoutResponse('e7e70207ff', index_ble);
+                            BluetoothManager.write('e7e70207ff', index_ble);
                             break;
                         case 'V_93T_1':
-                            BluetoothManager.writeWithoutResponse('e7e70208ff', index_ble);
+                            BluetoothManager.write('e7e70208ff', index_ble);
                             break;
 
                         case 'H_FLE445'://fle445 laserControl
-                            BluetoothManager.writeWithoutResponse('e7e70203ff', index_ble);
+                            BluetoothManager.write('e7e70203ff', index_ble);
                             break;
                         case 'V1_FLE445':
-                            BluetoothManager.writeWithoutResponse('e7e70204ff', index_ble);
+                            BluetoothManager.write('e7e70204ff', index_ble);
                             break;
                         case 'H360_FLE445':
-                            BluetoothManager.writeWithoutResponse('e7e70205ff', index_ble);
+                            BluetoothManager.write('e7e70205ff', index_ble);
                             break;
                         case 'V2_FLE445':
-                            BluetoothManager.writeWithoutResponse('e7e70206ff', index_ble);
+                            BluetoothManager.write('e7e70206ff', index_ble);
                             break;
                         case 'HV_FLE445':
-                            BluetoothManager.writeWithoutResponse('e7e70207ff', index_ble);
+                            BluetoothManager.write('e7e70207ff', index_ble);
                             break;
                         case 'V_FLE445':
-                            BluetoothManager.writeWithoutResponse('e7e70208ff', index_ble);
+                            BluetoothManager.write('e7e70208ff', index_ble);
                             break;
                         case 'brightness0':
                             if (device == 1) {
-                                BluetoothManager.writeWithoutResponse('e7e70209ff', index_ble);
+                                BluetoothManager.write('e7e70209ff', index_ble);
                             } else if (device == 2) {
-                                BluetoothManager.writeWithoutResponse('e7e70109ff', index_ble);
+                                BluetoothManager.write('e7e70109ff', index_ble);
                             }
                             break;
                         case 'brightness1':
                             if (device == 1) {
-                                BluetoothManager.writeWithoutResponse('e7e7020bff', index_ble);
+                                BluetoothManager.write('e7e7020bff', index_ble);
                             } else if (device == 2) {
-                                BluetoothManager.writeWithoutResponse('e7e7010bff', index_ble);
+                                BluetoothManager.write('e7e7010bff', index_ble);
                             }
                             break;
                         case 'brightness2':
                             if (device == 1) {
-                                BluetoothManager.writeWithoutResponse('e7e7020aff', index_ble);
+                                BluetoothManager.write('e7e7020aff', index_ble);
                             } else if (device == 2) {
-                                BluetoothManager.writeWithoutResponse('e7e7010aff', index_ble);
+                                BluetoothManager.write('e7e7010aff', index_ble);
                             }
                             break;
                         case 'XDirection_FLE445':
-                            BluetoothManager.writeWithoutResponse('e7e7010cff', index_ble);
+                            BluetoothManager.write('e7e7010cff', index_ble);
                             break;
                         case 'YDirection_FLE445':
-                            BluetoothManager.writeWithoutResponse('e7e7010dff', index_ble);
+                            BluetoothManager.write('e7e7010dff', index_ble);
                             break;
                         case 'youqin_FLE445':
-                            BluetoothManager.writeWithoutResponse('e7e7010eff', index_ble);
+                            BluetoothManager.write('e7e7010eff', index_ble);
                             break;
                         case 'zuoqin_FLE445':
-                            BluetoothManager.writeWithoutResponse('e7e7010fff', index_ble);
+                            BluetoothManager.write('e7e7010fff', index_ble);
                             break;
                         default:
                             alert(this.props.name);
@@ -1701,9 +1701,9 @@ class NewTypeButton extends Component {//11
                     switch (this.props.name) {//123
                         case 'left':
                             if (device == 3) {
-                                BluetoothManager.writeWithoutResponse('e7e70401ff', index_ble);
+                                BluetoothManager.write('e7e70401ff', index_ble);
                             } else if (device == 4) {
-                                //BluetoothManager.writeWithoutResponse('e7e70301ff', index_ble);
+                                //BluetoothManager.write('e7e70301ff', index_ble);
                                 let request = this.request;
                                 request.data = 'e7e70301ff';
                                 request.index = index_ble;
@@ -1713,9 +1713,9 @@ class NewTypeButton extends Component {//11
                             break;
                         case 'right':
                             if (device == 3) {
-                                BluetoothManager.writeWithoutResponse('e7e70402ff', index_ble);
+                                BluetoothManager.write('e7e70402ff', index_ble);
                             } else if (device == 4) {
-                                //BluetoothManager.writeWithoutResponse('e7e70302ff', index_ble);
+                                //BluetoothManager.write('e7e70302ff', index_ble);
                                 let request = this.request;
                                 request.data = 'e7e70302ff';
                                 request.index = index_ble;
@@ -1725,10 +1725,10 @@ class NewTypeButton extends Component {//11
                             break;
                         case 'up':
                             if (device == 3) {
-                                BluetoothManager.writeWithoutResponse('e7e70403ff', index_ble);
+                                BluetoothManager.write('e7e70403ff', index_ble);
 
                             } else if (device == 4) {
-                                //BluetoothManager.writeWithoutResponse('e7e70303ff', index_ble);
+                                //BluetoothManager.write('e7e70303ff', index_ble);
                                 let request = this.request;
                                 request.data = 'e7e70303ff';
                                 request.index = index_ble;
@@ -1738,9 +1738,9 @@ class NewTypeButton extends Component {//11
                             break;
                         case 'down':
                             if (device == 3) {
-                                BluetoothManager.writeWithoutResponse('e7e70404ff', index_ble);
+                                BluetoothManager.write('e7e70404ff', index_ble);
                             } else if (device == 4) {
-                                //BluetoothManager.writeWithoutResponse('e7e70304ff', index_ble);
+                                //BluetoothManager.write('e7e70304ff', index_ble);
                                 let request = this.request;
                                 request.data = 'e7e70304ff';
                                 request.index = index_ble;
@@ -1750,9 +1750,9 @@ class NewTypeButton extends Component {//11
                             break;
                         case 'leftAng':
                             if (device == 3) {
-                                BluetoothManager.writeWithoutResponse('e7e70405ff', index_ble);
+                                BluetoothManager.write('e7e70405ff', index_ble);
                             } else if (device == 4) {
-                                //BluetoothManager.writeWithoutResponse('e7e70305ff', index_ble);
+                                //BluetoothManager.write('e7e70305ff', index_ble);
                                 let request = this.request;
                                 request.data = 'e7e70305ff';
                                 request.index = index_ble;
@@ -1762,9 +1762,9 @@ class NewTypeButton extends Component {//11
                             break;
                         case 'rightAng':
                             if (device == 3) {
-                                BluetoothManager.writeWithoutResponse('e7e70406ff', index_ble);
+                                BluetoothManager.write('e7e70406ff', index_ble);
                             } else if (device == 4) {
-                                //BluetoothManager.writeWithoutResponse('e7e70306ff', index_ble);
+                                //BluetoothManager.write('e7e70306ff', index_ble);
                                 let request = this.request;
                                 request.data = 'e7e70306ff';
                                 request.index = index_ble;
@@ -1774,9 +1774,9 @@ class NewTypeButton extends Component {//11
                             break;
                         case 'qinxie':
                             if (device == 3) {
-                                BluetoothManager.writeWithoutResponse('e7e70407ff', index_ble);
+                                BluetoothManager.write('e7e70407ff', index_ble);
                             } else if (device == 4) {
-                                //BluetoothManager.writeWithoutResponse('e7e70307ff', index_ble);
+                                //BluetoothManager.write('e7e70307ff', index_ble);
                                 let request = this.request;
                                 request.data = 'e7e70307ff';
                                 request.index = index_ble;
@@ -1786,9 +1786,9 @@ class NewTypeButton extends Component {//11
                             break;
                         case 'manu':
                             if (device == 3) {
-                                BluetoothManager.writeWithoutResponse('e7e70408ff', index_ble);
+                                BluetoothManager.write('e7e70408ff', index_ble);
                             } else if (device == 4) {
-                                //BluetoothManager.writeWithoutResponse('e7e70308ff', index_ble);
+                                //BluetoothManager.write('e7e70308ff', index_ble);
                                 let request = this.request;
                                 request.data = 'e7e70308ff';
                                 request.index = index_ble;
@@ -1798,9 +1798,9 @@ class NewTypeButton extends Component {//11
                             break;
                         case 'scan10':
                             if (device == 3) {
-                                BluetoothManager.writeWithoutResponse('e7e70409ff', index_ble);
+                                BluetoothManager.write('e7e70409ff', index_ble);
                             } else if (device == 4) {
-                                //BluetoothManager.writeWithoutResponse('e7e70309ff', index_ble);
+                                //BluetoothManager.write('e7e70309ff', index_ble);
                                 let request = this.request;
                                 request.data = 'e7e70309ff';
                                 request.index = index_ble;
@@ -1810,9 +1810,9 @@ class NewTypeButton extends Component {//11
                             break;
                         case 'round600':
                             if (device == 3) {
-                                BluetoothManager.writeWithoutResponse('e7e7040aff', index_ble);
+                                BluetoothManager.write('e7e7040aff', index_ble);
                             } else if (device == 4) {
-                                //BluetoothManager.writeWithoutResponse('e7e7030aff', index_ble);
+                                //BluetoothManager.write('e7e7030aff', index_ble);
                                 let request = this.request;
                                 request.data = 'e7e7030aff';
                                 request.index = index_ble;
@@ -1829,7 +1829,7 @@ class NewTypeButton extends Component {//11
                     switch (this.props.name) {
                         case 'left':
                             if (device == 3) {
-                                BluetoothManager.writeWithoutResponse('e7e70401ff', index_ble);
+                                BluetoothManager.write('e7e70401ff', index_ble);
                             } else if (device == 4) {
                                 if (this.inter) {
                                     clearInterval(this.inter);
@@ -1837,7 +1837,7 @@ class NewTypeButton extends Component {//11
                                 }
                                 this.inter = setInterval(
                                     () => {
-                                        //BluetoothManager.writeWithoutResponse('e7e70301ff', index_ble);
+                                        //BluetoothManager.write('e7e70301ff', index_ble);
                                         let request = this.request;
                                         request.data = 'e7e70301ff';
                                         request.index = index_ble;
@@ -1848,7 +1848,7 @@ class NewTypeButton extends Component {//11
                             break;
                         case 'right':
                             if (device == 3) {
-                                BluetoothManager.writeWithoutResponse('e7e70402ff', index_ble);
+                                BluetoothManager.write('e7e70402ff', index_ble);
                             } else if (device == 4) {
                                 if (this.inter) {
                                     clearInterval(this.inter);
@@ -1856,7 +1856,7 @@ class NewTypeButton extends Component {//11
                                 }
                                 this.inter = setInterval(
                                     () => {
-                                        //BluetoothManager.writeWithoutResponse('e7e70302ff', index_ble);
+                                        //BluetoothManager.write('e7e70302ff', index_ble);
                                         let request = this.request;
                                         request.data = 'e7e70302ff';
                                         request.index = index_ble;
@@ -1867,7 +1867,7 @@ class NewTypeButton extends Component {//11
                             break;
                         case 'up':
                             if (device == 3) {
-                                BluetoothManager.writeWithoutResponse('e7e70403ff', index_ble);
+                                BluetoothManager.write('e7e70403ff', index_ble);
                             } else if (device == 4) {
                                 if (this.inter) {
                                     clearInterval(this.inter);
@@ -1875,7 +1875,7 @@ class NewTypeButton extends Component {//11
                                 }
                                 this.inter = setInterval(
                                     () => {
-                                        //BluetoothManager.writeWithoutResponse('e7e70303ff', index_ble);
+                                        //BluetoothManager.write('e7e70303ff', index_ble);
                                         let request = this.request;
                                         request.data = 'e7e70303ff';
                                         request.index = index_ble;
@@ -1886,7 +1886,7 @@ class NewTypeButton extends Component {//11
                             break;
                         case 'down':
                             if (device == 3) {
-                                BluetoothManager.writeWithoutResponse('e7e70404ff', index_ble);
+                                BluetoothManager.write('e7e70404ff', index_ble);
                             } else if (device == 4) {
                                 if (this.inter) {
                                     clearInterval(this.inter);
@@ -1894,7 +1894,7 @@ class NewTypeButton extends Component {//11
                                 }
                                 this.inter = setInterval(
                                     () => {
-                                        //BluetoothManager.writeWithoutResponse('e7e70304ff', index_ble);
+                                        //BluetoothManager.write('e7e70304ff', index_ble);
                                         let request = this.request;
                                         request.data = 'e7e70304ff';
                                         request.index = index_ble;
@@ -1905,7 +1905,7 @@ class NewTypeButton extends Component {//11
                             break;
                         case 'leftAng':
                             if (device == 3) {
-                                BluetoothManager.writeWithoutResponse('e7e70405ff', index_ble);
+                                BluetoothManager.write('e7e70405ff', index_ble);
                             } else if (device == 4) {
                                 if (this.inter) {
                                     clearInterval(this.inter);
@@ -1913,7 +1913,7 @@ class NewTypeButton extends Component {//11
                                 }
                                 this.inter = setInterval(
                                     () => {
-                                        //BluetoothManager.writeWithoutResponse('e7e70305ff', index_ble);
+                                        //BluetoothManager.write('e7e70305ff', index_ble);
                                         let request = this.request;
                                         request.data = 'e7e70305ff';
                                         request.index = index_ble;
@@ -1924,7 +1924,7 @@ class NewTypeButton extends Component {//11
                             break;
                         case 'rightAng':
                             if (device == 3) {
-                                BluetoothManager.writeWithoutResponse('e7e70406ff', index_ble);
+                                BluetoothManager.write('e7e70406ff', index_ble);
                             } else if (device == 4) {
                                 if (this.inter) {
                                     clearInterval(this.inter);
@@ -1932,7 +1932,7 @@ class NewTypeButton extends Component {//11
                                 }
                                 this.inter = setInterval(
                                     () => {
-                                        //BluetoothManager.writeWithoutResponse('e7e70306ff', index_ble);
+                                        //BluetoothManager.write('e7e70306ff', index_ble);
                                         let request = this.request;
                                         request.data = 'e7e70306ff';
                                         request.index = index_ble;
@@ -1943,30 +1943,30 @@ class NewTypeButton extends Component {//11
                             break;
                         case 'qinxie':
                             if (device == 3) {
-                                BluetoothManager.writeWithoutResponse('e7e70407ff', index_ble);
+                                BluetoothManager.write('e7e70407ff', index_ble);
                             } else if (device == 4) {
-                                BluetoothManager.writeWithoutResponse('e7e70307ff', index_ble);
+                                BluetoothManager.write('e7e70307ff', index_ble);
                             }
                             break;
                         case 'manu':
                             if (device == 3) {
-                                BluetoothManager.writeWithoutResponse('e7e70408ff', index_ble);
+                                BluetoothManager.write('e7e70408ff', index_ble);
                             } else if (device == 4) {
-                                BluetoothManager.writeWithoutResponse('e7e70308ff', index_ble);
+                                BluetoothManager.write('e7e70308ff', index_ble);
                             }
                             break;
                         case 'scan10':
                             if (device == 3) {
-                                BluetoothManager.writeWithoutResponse('e7e70409ff', index_ble);
+                                BluetoothManager.write('e7e70409ff', index_ble);
                             } else if (device == 4) {
-                                BluetoothManager.writeWithoutResponse('e7e70309ff', index_ble);
+                                BluetoothManager.write('e7e70309ff', index_ble);
                             }
                             break;
                         case 'round600':
                             if (device == 3) {
-                                BluetoothManager.writeWithoutResponse('e7e7040aff', index_ble);
+                                BluetoothManager.write('e7e7040aff', index_ble);
                             } else if (device == 4) {
-                                BluetoothManager.writeWithoutResponse('e7e7030aff', index_ble);
+                                BluetoothManager.write('e7e7030aff', index_ble);
 
                             }
                             break;
