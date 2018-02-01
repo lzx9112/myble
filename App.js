@@ -42,12 +42,11 @@ let TimerMixin = require('react-timer-mixin');
 GLOBAL.index_ble = '';
 GLOBAL.index_receive_char1 = '';
 GLOBAL.index_receive_char6 = '';
-GLOBAL.device = '';
+GLOBAL.cur_device = '';
 GLOBAL.ask_Device_State = null;
 GLOBAL.receive_Device_State_Inter = null;
 GLOBAL.request_Queue = new Array();
 export default class App extends Component<{}> {
-
     render() {
         return (
             <XingYunApp/>
@@ -72,24 +71,15 @@ class HomeScreen extends React.Component {
                 <View style={{flex: 5}}/>
 
                 <View style={{flex: 10, flexDirection: 'row'}}>
-                    <Button2_93T_1 name='DIY1' navigate={navigate}/>
-                </View>
-
-                <View style={{flex: 10, flexDirection: 'row'}}>
-
                     <ImageBackground style={styles.mybutton}
                                      source={require('./src/fle445.png')}>
                         <BasicButton name='fle445' navigate={navigate}/>
                     </ImageBackground>
                 </View>
 
-                {/*<View style={{flex: 10, flexDirection: 'row'}}>*/}
-
-                {/*<ImageBackground style={styles.mybutton}*/}
-                {/*source={require('./src/frd800.png')}>*/}
-                {/*<BasicButton name='frd800' navigate={navigate}/>*/}
-                {/*</ImageBackground>*/}
-                {/*</View>*/}
+                <View style={{flex: 10, flexDirection: 'row'}}>
+                    <Button2_93T_1 name='DIY1' navigate={navigate}/>
+                </View>
 
                 <View style={{flex: 10, flexDirection: 'row'}}>
 
@@ -98,14 +88,6 @@ class HomeScreen extends React.Component {
                         <BasicButton name='fre203' navigate={navigate}/>
                     </ImageBackground>
                 </View>
-
-                {/*<View style={{flex: 10, flexDirection: 'row'}}>
-
-                    <ImageBackground style={styles.mybutton}
-                                     source={require('./src/txbt.jpg')}>
-                        <BasicButton name='test' navigate={navigate}/>
-                    </ImageBackground>
-                </View>*/}
 
                 <View style={{flex: 30}}/>
 
@@ -379,6 +361,8 @@ class testBlueTooth extends Component {
             readData: '',
             readData6: '',
             isMonitoring: false,
+            level: false,
+            power: true,
         };
         this.request = {
             data: '',
@@ -392,6 +376,7 @@ class testBlueTooth extends Component {
         this.timer = null;
         this.testSendData = 1;
         this.ask_Device_State_char = 'e7e701eeff';
+        this.lowPowertest = 'fefe0420ff';
         this.count = 0;
 
     }
@@ -420,21 +405,16 @@ class testBlueTooth extends Component {
                         request.index = index_receive_char1;
                         request.request_Type = 0;
                         request_Queue.push(request);
-                    } else if (this.count == 2) {
+                    } else if (this.count == 2) {//read fff6判断数据是否发送成功
                         this.count = 0;
                         request.data = '';
                         request.index = index_receive_char6;
                         request.request_Type = 2;
                         //request_Queue.push(request);
                     }
-
-
-                    /*BluetoothManager.writeWithoutResponse(this.ask_Device_State_char, index_ble)
-                        .catch(err => {
-                            clearInterval(ask_Device_State);
-                        });*/
                 }
-            }, 1000);
+            }, 700);
+
         receive_Device_State_Inter = setInterval(
             () => {
                 if (this.state.isConnected) {
@@ -448,8 +428,20 @@ class testBlueTooth extends Component {
                         } else if (request.request_Type == 0) {
                             BluetoothManager.read(request.index)
                                 .then(data => {
-                                    //this.alert(data.toString());
                                     this.setState({readData: data});
+                                    if (data == parseInt('254254' + cur_device + '16255')
+                                        || data == parseInt('254254' + cur_device + '17255')
+                                        || data == parseInt('254254' + cur_device + '32255')
+                                        || data == parseInt('254254' + cur_device + '34255')) {
+                                        this.setState({
+                                            power: false,
+                                        });
+                                    }
+                                    else {
+                                        this.setState({
+                                            power: true,
+                                        });
+                                    }
                                 })
                                 .catch(err => {
                                     //clearInterval(receive_Device_State_Inter);
@@ -457,7 +449,6 @@ class testBlueTooth extends Component {
                         } else if (request.request_Type == 2) {//读fff6
                             BluetoothManager.read(request.index)
                                 .then(data => {
-                                    //this.alert(data.toString());
                                     this.setState({readData6: data});
                                 })
                                 .catch(err => {
@@ -465,17 +456,8 @@ class testBlueTooth extends Component {
                                 });
                         }
                     }
-
-                    /*BluetoothManager.read(index_receive)
-                        .then(data => {
-                            //this.alert(data.toString());
-                            this.setState({readData: data});
-                        })
-                        .catch(err => {
-                            //clearInterval(receive_Device_State_Inter);
-                        });*/
                 }
-            }, 50);
+            }, 100);
     }
 
     componentWillUnmount() {
@@ -702,29 +684,31 @@ class testBlueTooth extends Component {
         let data = item.item;
         if (item.item.name == 'SimpleBLEPeripheral') {
             return (
-                <View style={{flex: 1}}>
-                    <TouchableOpacity
-                        activeOpacity={0.7}
-                        disabled={this.state.isConnected ? true : false}
-                        onPress={() => {
-                            //this.connect(item);
-                            if (item.item.name == 'SimpleBLEPeripheral') {
-                                this.connect(item);
-                            } else {
-                                this.alert("请连接FUKUDA设备");
-                            }
-                        }}
-                        style={styles.exit}
-                    >
+                !this.state.isConnected ?
+                    <View style={{flex: 1}}>
+                        <TouchableOpacity
+                            activeOpacity={0.7}
+                            disabled={this.state.isConnected ? true : false}
+                            onPress={() => {
+                                //this.connect(item);
+                                if (item.item.name == 'SimpleBLEPeripheral') {
+                                    this.connect(item);
+                                } else {
+                                    this.alert("请连接FUKUDA设备");
+                                }
+                            }}
+                            style={styles.exit}
+                        >
 
-                        <View style={{flexDirection: 'row', flex: 1}}>
-                            <Text style={{color: 'red'}}>{data.name ? data.name : ''}</Text>
-                            <Text style={{marginLeft: 50, color: 'red'}}>{data.isConnecting ? '连接中...' : ''}</Text>
-                        </View>
-                        <Text style={[styles.exittext, {color: 'red', flex: 1}]}>{data.id}</Text>
+                            <View style={{flexDirection: 'row', flex: 1}}>
+                                <Text style={{color: 'red'}}>{data.name ? data.name : ''}</Text>
+                                <Text style={{marginLeft: 50, color: 'red'}}>{data.isConnecting ? '连接中...' : ''}</Text>
+                            </View>
+                            <Text style={[styles.exittext, {color: 'red', flex: 1}]}>{data.id}</Text>
 
-                    </TouchableOpacity>
-                </View>
+                        </TouchableOpacity>
+                    </View>
+                    : <View/>
             );
         }
     }
@@ -752,14 +736,27 @@ class testBlueTooth extends Component {
                 <Text style={{marginLeft: 0, marginTop: 1, color: 'red', fontSize: 10,}}>
                     {
                         this.state.isConnected ?
-                            device == 1 ? '当前连接的设备为Fukuda 93T-1'
-                                : device == 3 ? '当前连接的设备为Fukuda FRD800'
-                                : device == 4 ? '当前连接的设备为Fukuda FRE203X-1'
-                                    : device == 2 ? '当前连接的设备为Fukuda FLE445'
+                            cur_device == '2' ? '当前连接的设备为Fukuda 93T-1'
+                                : cur_device == '4' ? '当前连接的设备为Fukuda FRD800'
+                                : cur_device == '3' ? '当前连接的设备为Fukuda FRE203X-1'
+                                    : cur_device == '1' ? '当前连接的设备为Fukuda FLE445'
                                         : '当前连接的设备:'
                             : '可用设备:'
                     }
                 </Text>
+                {this.state.isConnected ?
+                    this.state.power ?
+                        <ImageBackground style={[styles.devicestate, {flex: 1}]}
+                                         source={require('./src/powerisok.png')}>
+                            {/*<BasicButton name='XDirection_FLE445' navigate={navigate}/>*/}
+                        </ImageBackground>
+                        : <ImageBackground style={[styles.devicestate, {flex: 1}]}
+                                           source={require('./src/powerislow.png')}>
+                            {/*<BasicButton name='XDirection_FLE445' navigate={navigate}/>*/}
+                        </ImageBackground>
+                    : <View/>
+                }
+
             </View>
         )
     }
@@ -788,14 +785,14 @@ class testBlueTooth extends Component {
         }
         return (
             <View style={{marginHorizontal: 0, marginTop: 30, flex: 1}}>
-                <Text style={{color: 'red', marginTop: 5}}>{label}FFF1:</Text>
-                <Text style={styles.content}>
-                    {state.readData}
-                </Text>
-                <Text style={{color: 'red', marginTop: 5}}>发送的数据FFF6:</Text>
-                <Text style={styles.content}>
-                    {state.readData6}
-                </Text>
+                {/*<Text style={{color: 'red', marginTop: 5}}>{label}FFF1:</Text>*/}
+                {/*<Text style={styles.content}>*/}
+                {/*{state.readData}*/}
+                {/*</Text>*/}
+                {/*<Text style={{color: 'red', marginTop: 5}}>发送的数据FFF6:</Text>*/}
+                {/*<Text style={styles.content}>*/}
+                {/*{state.readData6}*/}
+                {/*</Text>*/}
                 {characteristics.map((item, index) => {
                     if (item == this.char6 || item == this.char1) {//读取两个ID
                         if (item == this.char1) {
@@ -831,8 +828,8 @@ class testBlueTooth extends Component {
                 {characteristics.map((item, index) => {
                     if (item == this.char6) {
                         GLOBAL.index_ble = index;
-                        switch (device) {
-                            case 1://93t-1
+                        switch (cur_device) {
+                            case '2'://93t-1
                                 return (
                                     <View key={index} style={{flex: 10}}>
                                         <View style={{flex: 1}}/>
@@ -867,7 +864,7 @@ class testBlueTooth extends Component {
                                     </View>
                                 );
                                 break;
-                            case 2://
+                            case '1' ://
                                 return (
                                     <View key={index} style={{flex: 10}}>
                                         <View style={{flex: 1}}/>
@@ -910,11 +907,13 @@ class testBlueTooth extends Component {
                                     </View>
                                 );
                                 break;
-                            case 4://fre 203x-1
+                            case  '3' ://fre 203x-1
                                 return (
                                     <View key={index} style={[styles.container, {}]}>
-                                        <View style={{flex: 18,}}/>
+                                        {/*<View style={{flex: 17,borderWidth:1}}/>*/}
+                                        <View style={{flex: 1, alignItems: 'flex-end', borderWidth: 1}}>
 
+                                        </View>
                                         <View style={{flex: 17, flexDirection: 'row',}}>
                                             <View style={{
                                                 flex: 10, alignItems: 'flex-end',
@@ -1039,7 +1038,7 @@ class testBlueTooth extends Component {
                                     </View>
                                 );
                                 break;
-                            case 3://frd800
+                            case '4' ://frd800
                                 return (
                                     <View key={index} style={[styles.container, {}]}>
                                         <View style={{flex: 18,}}/>
@@ -1466,7 +1465,7 @@ class Button2_93T_1 extends Component {//93T-1 Button
                 <TouchableHighlight
                     onHideUnderlay={this._onHideUnderlay.bind(this)}
                     onPress={() => {
-                        device = 1;
+                        cur_device = '2';
                         this.props.navigate('testBlueTooth');
                     }}
                     onShowUnderlay={this._onShowUnderlay.bind(this)}
@@ -1488,6 +1487,11 @@ class BasicButton extends Component {
         super(props);
         this.state = {
             pressStatus: false,
+        };
+        this.request = {
+            data: '',
+            request_Type: '',
+            index: '',
         };
     }
 
@@ -1516,7 +1520,7 @@ class BasicButton extends Component {
                     //this.props.navigate('brightnessControl');
                     switch (this.props.name) {
                         case 'fle445':
-                            device = 2;
+                            cur_device = '1';
                             this.props.navigate('testBlueTooth');
                             break;
                         case 'fle445LaserCtrl':
@@ -1529,11 +1533,11 @@ class BasicButton extends Component {
                             this.props.navigate('brightnessControl');
                             break;
                         case 'fre203':
-                            device = 4;
+                            cur_device = '3';
                             this.props.navigate('testBlueTooth');
                             break;
                         case 'frd800':
-                            device = 3;
+                            cur_device = '4';
                             this.props.navigate('testBlueTooth');
                             break;
                         case 'Remote_FLE445':
@@ -1544,89 +1548,193 @@ class BasicButton extends Component {
                             this.props.navigate('laserControlScreen_93T_1');
                             break;
                         case 'Remote':
-                            if (device == 1) {
-                                BluetoothManager.write('e7e70201ff', index_ble);
-                            } else if (device == 2) {
-                                BluetoothManager.write('e7e70101ff', index_ble);
+                            if (cur_device != '') {
+                                let request = this.request;
+                                request.data = 'e7e70' + cur_device + '01ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
                             }
                             break;
                         case 'unRemote':
-                            if (device == 1) {
-                                BluetoothManager.write('e7e70202ff', index_ble);
-                            } else if (device == 2) {
-                                BluetoothManager.write('e7e70102ff', index_ble);
+                            if (cur_device != '') {
+                                let request = this.request;
+                                request.data = 'e7e70' + cur_device + '02ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
                             }
                             break;
-
                         case 'H_93T_1'://93T-1 laserControl
-                            BluetoothManager.write('e7e70203ff', index_ble);
+                            if (cur_device != '') {
+                                let request = this.request;
+                                request.data = 'e7e70' + cur_device + '03ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
+                            }
                             break;
                         case 'V1_93T_1':
-                            BluetoothManager.write('e7e70204ff', index_ble);
+                            if (cur_device != '') {
+                                let request = this.request;
+                                request.data = 'e7e70' + cur_device + '04ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
+                            }
                             break;
                         case 'H360_93T_1':
-                            BluetoothManager.write('e7e70205ff', index_ble);
+                            if (cur_device != '') {
+                                let request = this.request;
+                                request.data = 'e7e70' + cur_device + '05ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
+                            }
                             break;
                         case 'V2_93T_1':
-                            BluetoothManager.write('e7e70206ff', index_ble);
+                            if (cur_device != '') {
+                                let request = this.request;
+                                request.data = 'e7e70' + cur_device + '06ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
+                            }
                             break;
                         case 'HV_93T_1':
-                            BluetoothManager.write('e7e70207ff', index_ble);
+                            if (cur_device != '') {
+                                let request = this.request;
+                                request.data = 'e7e70' + cur_device + '07ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
+                            }
                             break;
                         case 'V_93T_1':
-                            BluetoothManager.write('e7e70208ff', index_ble);
+                            if (cur_device != '') {
+                                let request = this.request;
+                                request.data = 'e7e70' + cur_device + '08ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
+                            }
                             break;
-
                         case 'H_FLE445'://fle445 laserControl
-                            BluetoothManager.write('e7e70203ff', index_ble);
+                            if (cur_device != '') {
+                                let request = this.request;
+                                request.data = 'e7e70' + cur_device + '03ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
+                            }
                             break;
                         case 'V1_FLE445':
-                            BluetoothManager.write('e7e70204ff', index_ble);
+                            if (cur_device != '') {
+                                let request = this.request;
+                                request.data = 'e7e70' + cur_device + '04ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
+                            }
                             break;
                         case 'H360_FLE445':
-                            BluetoothManager.write('e7e70205ff', index_ble);
+                            if (cur_device != '') {
+                                let request = this.request;
+                                request.data = 'e7e70' + cur_device + '05ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
+                            }
                             break;
                         case 'V2_FLE445':
-                            BluetoothManager.write('e7e70206ff', index_ble);
+                            if (cur_device != '') {
+                                let request = this.request;
+                                request.data = 'e7e70' + cur_device + '06ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
+                            }
                             break;
                         case 'HV_FLE445':
-                            BluetoothManager.write('e7e70207ff', index_ble);
+                            if (cur_device != '') {
+                                let request = this.request;
+                                request.data = 'e7e70' + cur_device + '07ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
+                            }
                             break;
                         case 'V_FLE445':
-                            BluetoothManager.write('e7e70208ff', index_ble);
+                            if (cur_device != '') {
+                                let request = this.request;
+                                request.data = 'e7e70' + cur_device + '08ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
+                            }
                             break;
                         case 'brightness0':
-                            if (device == 1) {
-                                BluetoothManager.write('e7e70209ff', index_ble);
-                            } else if (device == 2) {
-                                BluetoothManager.write('e7e70109ff', index_ble);
+                            if (cur_device != '') {
+                                let request = this.request;
+                                request.data = 'e7e70' + cur_device + '09ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
                             }
                             break;
                         case 'brightness1':
-                            if (device == 1) {
-                                BluetoothManager.write('e7e7020bff', index_ble);
-                            } else if (device == 2) {
-                                BluetoothManager.write('e7e7010bff', index_ble);
+                            if (cur_device != '') {
+                                let request = this.request;
+                                request.data = 'e7e70' + cur_device + '0bff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
                             }
                             break;
                         case 'brightness2':
-                            if (device == 1) {
-                                BluetoothManager.write('e7e7020aff', index_ble);
-                            } else if (device == 2) {
-                                BluetoothManager.write('e7e7010aff', index_ble);
+                            if (cur_device != '') {
+                                let request = this.request;
+                                request.data = 'e7e70' + cur_device + '0aff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
                             }
                             break;
                         case 'XDirection_FLE445':
-                            BluetoothManager.write('e7e7010cff', index_ble);
+                            if (cur_device != '') {
+                                let request = this.request;
+                                request.data = 'e7e70' + cur_device + '0cff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
+                            }
                             break;
                         case 'YDirection_FLE445':
-                            BluetoothManager.write('e7e7010dff', index_ble);
+                            if (cur_device != '') {
+                                let request = this.request;
+                                request.data = 'e7e70' + cur_device + '0dff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
+                            }
                             break;
                         case 'youqin_FLE445':
-                            BluetoothManager.write('e7e7010eff', index_ble);
+                            if (cur_device != '') {
+                                let request = this.request;
+                                request.data = 'e7e70' + cur_device + '0eff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
+                            }
                             break;
                         case 'zuoqin_FLE445':
-                            BluetoothManager.write('e7e7010fff', index_ble);
+                            if (cur_device != '') {
+                                let request = this.request;
+                                request.data = 'e7e70' + cur_device + '0fff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
+                            }
                             break;
                         default:
                             alert(this.props.name);
@@ -1700,121 +1808,90 @@ class NewTypeButton extends Component {//11
                 onPress={() => {
                     switch (this.props.name) {//123
                         case 'left':
-                            if (device == 3) {
-                                BluetoothManager.write('e7e70401ff', index_ble);
-                            } else if (device == 4) {
-                                //BluetoothManager.write('e7e70301ff', index_ble);
+                            if (cur_device != '') {
                                 let request = this.request;
-                                request.data = 'e7e70301ff';
+                                request.data = 'e7e70' + cur_device + '01ff';
                                 request.index = index_ble;
                                 request.request_Type = 1;
                                 request_Queue.push(request);
                             }
                             break;
                         case 'right':
-                            if (device == 3) {
-                                BluetoothManager.write('e7e70402ff', index_ble);
-                            } else if (device == 4) {
-                                //BluetoothManager.write('e7e70302ff', index_ble);
+                            if (cur_device != '') {
                                 let request = this.request;
-                                request.data = 'e7e70302ff';
+                                request.data = 'e7e70' + cur_device + '02ff';
                                 request.index = index_ble;
                                 request.request_Type = 1;
                                 request_Queue.push(request);
                             }
                             break;
                         case 'up':
-                            if (device == 3) {
-                                BluetoothManager.write('e7e70403ff', index_ble);
-
-                            } else if (device == 4) {
-                                //BluetoothManager.write('e7e70303ff', index_ble);
+                            if (cur_device != '') {
                                 let request = this.request;
-                                request.data = 'e7e70303ff';
+                                request.data = 'e7e70' + cur_device + '03ff';
                                 request.index = index_ble;
                                 request.request_Type = 1;
                                 request_Queue.push(request);
                             }
                             break;
                         case 'down':
-                            if (device == 3) {
-                                BluetoothManager.write('e7e70404ff', index_ble);
-                            } else if (device == 4) {
-                                //BluetoothManager.write('e7e70304ff', index_ble);
+                            if (cur_device != '') {
                                 let request = this.request;
-                                request.data = 'e7e70304ff';
+                                request.data = 'e7e70' + cur_device + '04ff';
                                 request.index = index_ble;
                                 request.request_Type = 1;
                                 request_Queue.push(request);
                             }
                             break;
                         case 'leftAng':
-                            if (device == 3) {
-                                BluetoothManager.write('e7e70405ff', index_ble);
-                            } else if (device == 4) {
-                                //BluetoothManager.write('e7e70305ff', index_ble);
+                            if (cur_device != '') {
                                 let request = this.request;
-                                request.data = 'e7e70305ff';
+                                request.data = 'e7e70' + cur_device + '05ff';
                                 request.index = index_ble;
                                 request.request_Type = 1;
                                 request_Queue.push(request);
                             }
                             break;
                         case 'rightAng':
-                            if (device == 3) {
-                                BluetoothManager.write('e7e70406ff', index_ble);
-                            } else if (device == 4) {
-                                //BluetoothManager.write('e7e70306ff', index_ble);
+                            if (cur_device != '') {
                                 let request = this.request;
-                                request.data = 'e7e70306ff';
+                                request.data = 'e7e70' + cur_device + '06ff';
                                 request.index = index_ble;
                                 request.request_Type = 1;
                                 request_Queue.push(request);
                             }
                             break;
                         case 'qinxie':
-                            if (device == 3) {
-                                BluetoothManager.write('e7e70407ff', index_ble);
-                            } else if (device == 4) {
-                                //BluetoothManager.write('e7e70307ff', index_ble);
+                            if (cur_device != '') {
                                 let request = this.request;
-                                request.data = 'e7e70307ff';
+                                request.data = 'e7e70' + cur_device + '07ff';
                                 request.index = index_ble;
                                 request.request_Type = 1;
                                 request_Queue.push(request);
                             }
                             break;
                         case 'manu':
-                            if (device == 3) {
-                                BluetoothManager.write('e7e70408ff', index_ble);
-                            } else if (device == 4) {
-                                //BluetoothManager.write('e7e70308ff', index_ble);
+                            if (cur_device != '') {
                                 let request = this.request;
-                                request.data = 'e7e70308ff';
+                                request.data = 'e7e70' + cur_device + '08ff';
                                 request.index = index_ble;
                                 request.request_Type = 1;
                                 request_Queue.push(request);
                             }
                             break;
                         case 'scan10':
-                            if (device == 3) {
-                                BluetoothManager.write('e7e70409ff', index_ble);
-                            } else if (device == 4) {
-                                //BluetoothManager.write('e7e70309ff', index_ble);
+                            if (cur_device != '') {
                                 let request = this.request;
-                                request.data = 'e7e70309ff';
+                                request.data = 'e7e70' + cur_device + '09ff';
                                 request.index = index_ble;
                                 request.request_Type = 1;
                                 request_Queue.push(request);
                             }
                             break;
                         case 'round600':
-                            if (device == 3) {
-                                BluetoothManager.write('e7e7040aff', index_ble);
-                            } else if (device == 4) {
-                                //BluetoothManager.write('e7e7030aff', index_ble);
+                            if (cur_device != '') {
                                 let request = this.request;
-                                request.data = 'e7e7030aff';
+                                request.data = 'e7e70' + cur_device + '0aff';
                                 request.index = index_ble;
                                 request.request_Type = 1;
                                 request_Queue.push(request);
@@ -1828,18 +1905,15 @@ class NewTypeButton extends Component {//11
                 onLongPress={() => {
                     switch (this.props.name) {
                         case 'left':
-                            if (device == 3) {
-                                BluetoothManager.write('e7e70401ff', index_ble);
-                            } else if (device == 4) {
+                            if (cur_device != '') {
                                 if (this.inter) {
                                     clearInterval(this.inter);
 
                                 }
                                 this.inter = setInterval(
                                     () => {
-                                        //BluetoothManager.write('e7e70301ff', index_ble);
                                         let request = this.request;
-                                        request.data = 'e7e70301ff';
+                                        request.data = 'e7e70' + cur_device + '01ff';
                                         request.index = index_ble;
                                         request.request_Type = 1;
                                         request_Queue.push(request);
@@ -1847,18 +1921,15 @@ class NewTypeButton extends Component {//11
                             }
                             break;
                         case 'right':
-                            if (device == 3) {
-                                BluetoothManager.write('e7e70402ff', index_ble);
-                            } else if (device == 4) {
+                            if (cur_device != '') {
                                 if (this.inter) {
                                     clearInterval(this.inter);
 
                                 }
                                 this.inter = setInterval(
                                     () => {
-                                        //BluetoothManager.write('e7e70302ff', index_ble);
                                         let request = this.request;
-                                        request.data = 'e7e70302ff';
+                                        request.data = 'e7e70' + cur_device + '02ff';
                                         request.index = index_ble;
                                         request.request_Type = 1;
                                         request_Queue.push(request);
@@ -1866,18 +1937,15 @@ class NewTypeButton extends Component {//11
                             }
                             break;
                         case 'up':
-                            if (device == 3) {
-                                BluetoothManager.write('e7e70403ff', index_ble);
-                            } else if (device == 4) {
+                            if (cur_device != '') {
                                 if (this.inter) {
                                     clearInterval(this.inter);
 
                                 }
                                 this.inter = setInterval(
                                     () => {
-                                        //BluetoothManager.write('e7e70303ff', index_ble);
                                         let request = this.request;
-                                        request.data = 'e7e70303ff';
+                                        request.data = 'e7e70' + cur_device + '03ff';
                                         request.index = index_ble;
                                         request.request_Type = 1;
                                         request_Queue.push(request);
@@ -1885,18 +1953,15 @@ class NewTypeButton extends Component {//11
                             }
                             break;
                         case 'down':
-                            if (device == 3) {
-                                BluetoothManager.write('e7e70404ff', index_ble);
-                            } else if (device == 4) {
+                            if (cur_device != '') {
                                 if (this.inter) {
                                     clearInterval(this.inter);
 
                                 }
                                 this.inter = setInterval(
                                     () => {
-                                        //BluetoothManager.write('e7e70304ff', index_ble);
                                         let request = this.request;
-                                        request.data = 'e7e70304ff';
+                                        request.data = 'e7e70' + cur_device + '04ff';
                                         request.index = index_ble;
                                         request.request_Type = 1;
                                         request_Queue.push(request);
@@ -1904,18 +1969,15 @@ class NewTypeButton extends Component {//11
                             }
                             break;
                         case 'leftAng':
-                            if (device == 3) {
-                                BluetoothManager.write('e7e70405ff', index_ble);
-                            } else if (device == 4) {
+                            if (cur_device != '') {
                                 if (this.inter) {
                                     clearInterval(this.inter);
 
                                 }
                                 this.inter = setInterval(
                                     () => {
-                                        //BluetoothManager.write('e7e70305ff', index_ble);
                                         let request = this.request;
-                                        request.data = 'e7e70305ff';
+                                        request.data = 'e7e70' + cur_device + '05ff';
                                         request.index = index_ble;
                                         request.request_Type = 1;
                                         request_Queue.push(request);
@@ -1923,18 +1985,15 @@ class NewTypeButton extends Component {//11
                             }
                             break;
                         case 'rightAng':
-                            if (device == 3) {
-                                BluetoothManager.write('e7e70406ff', index_ble);
-                            } else if (device == 4) {
+                            if (cur_device != '') {
                                 if (this.inter) {
                                     clearInterval(this.inter);
 
                                 }
                                 this.inter = setInterval(
                                     () => {
-                                        //BluetoothManager.write('e7e70306ff', index_ble);
                                         let request = this.request;
-                                        request.data = 'e7e70306ff';
+                                        request.data = 'e7e70' + cur_device + '06ff';
                                         request.index = index_ble;
                                         request.request_Type = 1;
                                         request_Queue.push(request);
@@ -1942,32 +2001,39 @@ class NewTypeButton extends Component {//11
                             }
                             break;
                         case 'qinxie':
-                            if (device == 3) {
-                                BluetoothManager.write('e7e70407ff', index_ble);
-                            } else if (device == 4) {
-                                BluetoothManager.write('e7e70307ff', index_ble);
+                            if (cur_device != '') {
+                                let request = this.request;
+                                request.data = 'e7e70' + cur_device + '07ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
                             }
                             break;
                         case 'manu':
-                            if (device == 3) {
-                                BluetoothManager.write('e7e70408ff', index_ble);
-                            } else if (device == 4) {
-                                BluetoothManager.write('e7e70308ff', index_ble);
+                            if (cur_device != '') {
+                                let request = this.request;
+                                request.data = 'e7e70' + cur_device + '08ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
                             }
                             break;
                         case 'scan10':
-                            if (device == 3) {
-                                BluetoothManager.write('e7e70409ff', index_ble);
-                            } else if (device == 4) {
-                                BluetoothManager.write('e7e70309ff', index_ble);
+                            if (cur_device != '') {
+                                let request = this.request;
+                                request.data = 'e7e70' + cur_device + '09ff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
                             }
                             break;
                         case 'round600':
-                            if (device == 3) {
-                                BluetoothManager.write('e7e7040aff', index_ble);
-                            } else if (device == 4) {
-                                BluetoothManager.write('e7e7030aff', index_ble);
-
+                            if (cur_device != '') {
+                                let request = this.request;
+                                request.data = 'e7e70' + cur_device + '0aff';
+                                request.index = index_ble;
+                                request.request_Type = 1;
+                                request_Queue.push(request);
                             }
                             break;
                         default:
@@ -2199,6 +2265,12 @@ const styles = StyleSheet.create({
         height: 50,
         fontSize: 16,
         flex: 1,
+    },
+    devicestate: {
+        //borderWidth: 1,
+        height: (Dimensions.get('window').width) / 16,
+        width: (Dimensions.get('window').width) / 8,
+
     },
 
 });
