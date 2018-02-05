@@ -46,6 +46,8 @@ GLOBAL.cur_device = '';
 GLOBAL.ask_Device_State = null;
 GLOBAL.receive_Device_State_Inter = null;
 GLOBAL.request_Queue = new Array();
+GLOBAL.index_char1 = '';
+
 export default class App extends Component<{}> {
     render() {
         return (
@@ -373,7 +375,6 @@ class testBlueTooth extends Component {
         this.deviceMap = new Map();
         this.char6 = '0000FFF6-0000-1000-8000-00805F9B34FB';//发数据
         this.char1 = '0000FFF1-0000-1000-8000-00805F9B34FB';//收数据
-        this.timer = null;
         this.testSendData = 1;
         this.ask_Device_State_char = 'e7e701eeff';
         this.lowPowertest = 'fefe0420ff';
@@ -389,75 +390,6 @@ class testBlueTooth extends Component {
         this.connectPeripheralListener = BluetoothManager.addListener('BleManagerConnectPeripheral', this.handleConnectPeripheral);
         this.disconnectPeripheralListener = BluetoothManager.addListener('BleManagerDisconnectPeripheral', this.handleDisconnectPeripheral);
         this.updateValueListener = BluetoothManager.addListener('BleManagerDidUpdateValueForCharacteristic', this.handleUpdateValue);
-        ask_Device_State = setInterval(
-            () => {
-                if (this.state.isConnected) {
-                    let request = this.request;
-                    if (this.count == 0) {
-                        this.count = 1;
-                        request.data = this.ask_Device_State_char;
-                        request.index = index_ble;
-                        request.request_Type = 1;
-                        request_Queue.push(request);
-                    } else if (this.count == 1) {
-                        this.count = 2;
-                        request.data = '';
-                        request.index = index_receive_char1;
-                        request.request_Type = 0;
-                        request_Queue.push(request);
-                    } else if (this.count == 2) {//read fff6判断数据是否发送成功
-                        this.count = 0;
-                        request.data = '';
-                        request.index = index_receive_char6;
-                        request.request_Type = 2;
-                        //request_Queue.push(request);
-                    }
-                }
-            }, 700);
-
-        receive_Device_State_Inter = setInterval(
-            () => {
-                if (this.state.isConnected) {
-                    if (request_Queue.length > 0) {
-                        let request = request_Queue.pop();
-                        if (request.request_Type == 1) {
-                            BluetoothManager.write(request.data, request.index)
-                                .catch(err => {
-                                    //clearInterval(ask_Device_State);
-                                });
-                        } else if (request.request_Type == 0) {
-                            BluetoothManager.read(request.index)
-                                .then(data => {
-                                    this.setState({readData: data});
-                                    if (data == parseInt('254254' + cur_device + '16255')
-                                        || data == parseInt('254254' + cur_device + '17255')
-                                        || data == parseInt('254254' + cur_device + '32255')
-                                        || data == parseInt('254254' + cur_device + '34255')) {
-                                        this.setState({
-                                            power: false,
-                                        });
-                                    }
-                                    else {
-                                        this.setState({
-                                            power: true,
-                                        });
-                                    }
-                                })
-                                .catch(err => {
-                                    //clearInterval(receive_Device_State_Inter);
-                                });
-                        } else if (request.request_Type == 2) {//读fff6
-                            BluetoothManager.read(request.index)
-                                .then(data => {
-                                    this.setState({readData6: data});
-                                })
-                                .catch(err => {
-                                    //clearInterval(receive_Device_State_Inter);
-                                });
-                        }
-                    }
-                }
-            }, 100);
     }
 
     componentWillUnmount() {
@@ -470,9 +402,6 @@ class testBlueTooth extends Component {
         if (this.state.isConnected) {
             BluetoothManager.disconnect();  //退出时断开蓝牙连接
         }
-        this.timer && clearTimeout(this.timer);
-        ask_Device_State && clearInterval(ask_Device_State);
-        receive_Device_State_Inter && clearInterval(receive_Device_State_Inter);
     }
 
     //蓝牙状态改变
@@ -512,6 +441,89 @@ class testBlueTooth extends Component {
     //蓝牙设备已连接
     handleConnectPeripheral = (args) => {
         console.log('BleManagerConnectPeripheral:', args);
+        ask_Device_State = setInterval(
+            () => {
+                if (this.state.isConnected) {
+                    let request = this.request;
+                    if (this.count == 0) {//write ask_Device_State_char to fff6
+                        this.count = 1;
+                        request.data = this.ask_Device_State_char;
+                        request.index = index_ble;
+                        request.request_Type = 1;
+                        request_Queue.push(request);
+                    } else if (this.count == 1) {//read fff1
+                        this.count = 2;
+                        request.data = '';
+                        request.index = index_receive_char1;
+                        request.request_Type = 0;
+                        request_Queue.push(request);
+                    } else if (this.count == 2) {//read fff6判断数据是否发送成功
+                        this.count = 3;
+                        request.data = '';
+                        request.index = index_receive_char6;
+                        request.request_Type = 2;
+                       // request_Queue.push(request);
+                    } else if (this.count == 3) {//write test low power to fff1
+                        this.count = 0;
+                        request.data = '21';
+                        request.index = index_char1;
+                        request.request_Type = 3;
+                        //request_Queue.push(request);
+
+                    }
+                }
+            }, 700);
+
+        receive_Device_State_Inter = setInterval(
+            () => {
+                if (this.state.isConnected) {
+                    if (request_Queue.length > 0) {
+                        let request = request_Queue.pop();
+                        if (request.request_Type == 0) {//读 fff1
+                            BluetoothManager.read(request.index)
+                                .then(data => {
+                                    this.setState({readData: data});
+                                    if (data == parseInt('16')
+                                        || data == parseInt('17')
+                                        || data == parseInt('32')
+                                        || data == parseInt('33')) {
+                                        this.setState({
+                                            power: false,
+                                        });
+                                    }
+                                    else {
+                                        this.setState({
+                                            power: true,
+                                        });
+                                    }
+                                })
+                                .catch(err => {
+                                    //clearInterval(receive_Device_State_Inter);
+                                });
+                        } else if (request.request_Type == 1) {// 写fff6
+                            BluetoothManager.write(request.data, request.index)
+                                .catch(err => {
+                                    //clearInterval(ask_Device_State);
+                                });
+
+                        } else if (request.request_Type == 2) {//读fff6
+                            BluetoothManager.read(request.index)
+                                .then(data => {
+                                    this.setState({readData6: data});
+                                })
+                                .catch(err => {
+                                    //clearInterval(receive_Device_State_Inter);
+                                });
+                        } else if (request.request_Type == 3) {// xie fff1
+                            //this.alert(request.data+request.index);
+                            BluetoothManager.write(request.data, request.index)
+                                .catch(err => {
+                                    //clearInterval(ask_Device_State);
+                                });
+                        }
+                    }
+                }
+            }, 100);
     }
 
     //蓝牙设备已断开连接
@@ -527,6 +539,8 @@ class testBlueTooth extends Component {
             receiveData: '',
             text: '',
         });
+        ask_Device_State && clearInterval(ask_Device_State);
+        receive_Device_State_Inter && clearInterval(receive_Device_State_Inter);
     }
 
     //接收到新数据
@@ -565,16 +579,109 @@ class testBlueTooth extends Component {
             .catch(err => {
                 let newData = [...this.state.data];
                 newData[item.index].isConnecting = false;
-                this.setState({data: newData});
+                this.setState({
+                    data: newData,
+                    isConnected: false,
+                });
                 this.alert('连接失败');
-            })
+            });
+        /*if(this.state.isConnected){
+            ask_Device_State && clearInterval(ask_Device_State);
+            receive_Device_State_Inter && clearInterval(receive_Device_State_Inter);
+            ask_Device_State = setInterval(
+                () => {
+                    if (this.state.isConnected) {
+                        let request = this.request;
+                        if (this.count == 0) {//write ask_Device_State_char to fff6
+                            this.count = 1;
+                            request.data = this.ask_Device_State_char;
+                            request.index = index_ble;
+                            request.request_Type = 1;
+                            request_Queue.push(request);
+                        } else if (this.count == 1) {//read fff1
+                            this.count = 2;
+                            request.data = '';
+                            request.index = index_receive_char1;
+                            request.request_Type = 0;
+                            request_Queue.push(request);
+                        } else if (this.count == 2) {//read fff6判断数据是否发送成功
+                            this.count = 3;
+                            request.data = '';
+                            request.index = index_receive_char6;
+                            request.request_Type = 2;
+                            request_Queue.push(request);
+                        } else if (this.count == 3) {//write test low power to fff1
+                            this.count = 0;
+                            request.data = '21';
+                            request.index = index_char1;
+                            request.request_Type = 3;
+                            request_Queue.push(request);
+
+                        }
+                    }
+                }, 700);
+
+            receive_Device_State_Inter = setInterval(
+                () => {
+                    if (this.state.isConnected) {
+                        if (request_Queue.length > 0) {
+                            let request = request_Queue.pop();
+                            if (request.request_Type == 0) {//读 fff1
+                                BluetoothManager.read(request.index)
+                                    .then(data => {
+                                        this.setState({readData: data});
+                                        if (data == parseInt('16')
+                                            || data == parseInt('17')
+                                            || data == parseInt('32')
+                                            || data == parseInt('33')) {
+                                            this.setState({
+                                                power: false,
+                                            });
+                                        }
+                                        else {
+                                            this.setState({
+                                                power: true,
+                                            });
+                                        }
+                                    })
+                                    .catch(err => {
+                                        //clearInterval(receive_Device_State_Inter);
+                                    });
+                            } else if (request.request_Type == 1) {// 写fff6
+                                BluetoothManager.writeWithoutResponse(request.data, request.index)
+                                    .catch(err => {
+                                        //clearInterval(ask_Device_State);
+                                    });
+
+                            } else if (request.request_Type == 2) {//读fff6
+                                BluetoothManager.read(request.index)
+                                    .then(data => {
+                                        this.setState({readData6: data});
+                                    })
+                                    .catch(err => {
+                                        //clearInterval(receive_Device_State_Inter);
+                                    });
+                            } else if (request.request_Type == 3) {// xie fff1
+                                //this.alert(request.data+request.index);
+                                BluetoothManager.write(request.data, request.index)
+                                    .catch(err => {
+                                        //clearInterval(ask_Device_State);
+                                    });
+                            }
+                        }
+                    }
+                }, 100);
+
+        }*/
     }
 
-    disconnect() {
+    disconnect() {//按钮断开蓝牙
         this.setState({
             data: [...this.deviceMap.values()],
             isConnected: false
         });
+        ask_Device_State && clearInterval(ask_Device_State);
+        receive_Device_State_Inter && clearInterval(receive_Device_State_Inter);
         BluetoothManager.disconnect();
     }
 
@@ -785,14 +892,14 @@ class testBlueTooth extends Component {
         }
         return (
             <View style={{marginHorizontal: 0, marginTop: 30, flex: 1}}>
-                {/*<Text style={{color: 'red', marginTop: 5}}>{label}FFF1:</Text>*/}
-                {/*<Text style={styles.content}>*/}
-                {/*{state.readData}*/}
-                {/*</Text>*/}
-                {/*<Text style={{color: 'red', marginTop: 5}}>发送的数据FFF6:</Text>*/}
-                {/*<Text style={styles.content}>*/}
-                {/*{state.readData6}*/}
-                {/*</Text>*/}
+                {/*<Text style={{color: 'red', marginTop: 5}}>{label}FFF1:</Text>
+                <Text style={styles.content}>
+                    {state.readData}
+                </Text>
+                <Text style={{color: 'red', marginTop: 5}}>发送的数据FFF6:</Text>
+                <Text style={styles.content}>
+                    {state.readData6}
+                </Text>*/}
                 {characteristics.map((item, index) => {
                     if (item == this.char6 || item == this.char1) {//读取两个ID
                         if (item == this.char1) {
@@ -1173,7 +1280,8 @@ class testBlueTooth extends Component {
                         }
 
                     } else if (item == this.char1) {
-                        /*return (
+                        GLOBAL.index_char1 = index;
+                       /* return (
                             <View key={index}>
                                 <TouchableOpacity
                                     key={index}
@@ -1181,19 +1289,26 @@ class testBlueTooth extends Component {
                                     style={styles.buttonView}
                                     onPress={() => {
                                         //onPress(index);
-                                        if (this.timer == null) {
+                                        /!*if (this.timer == null) {
                                             this.alert('开启连续发送，每隔0.5s往' + item + '发送0x10');
                                             setTimeout(
                                                 () => {
-                                                    BluetoothManager.write('10', index)
-                                                        .catch(err => {
-                                                            this.alert('发送失败');
+                                                    let request = this.request;
+                                                    request.data = 'fefe0121ff';
+                                                    request.index = index_char1;
+                                                    request.request_Type = 3;
+                                                    request_Queue.push(request);
 
-                                                        });
+                                                    // BluetoothManager.write('10', index)
+                                                    //     .catch(err => {
+                                                    //         this.alert('发送失败');
+                                                    //
+                                                    //     });
                                                 },
                                                 500
                                             );
-                                        }
+                                        }*!/
+
                                     }}>
                                     {/!* <Text style={styles.buttonText}>{buttonText} ({item})</Text>*!/}
                                     <Text style={styles.buttonText}>开启连续发送</Text>
