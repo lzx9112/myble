@@ -462,10 +462,10 @@ class testBlueTooth extends Component {
                         request.data = '';
                         request.index = index_receive_char6;
                         request.request_Type = 2;
-                       // request_Queue.push(request);
+                        // request_Queue.push(request);
                     } else if (this.count == 3) {//write test low power to fff1
                         this.count = 0;
-                        request.data = '21';
+                        request.data = 'fefe0110ff';
                         request.index = index_char1;
                         request.request_Type = 3;
                         //request_Queue.push(request);
@@ -483,10 +483,10 @@ class testBlueTooth extends Component {
                             BluetoothManager.read(request.index)
                                 .then(data => {
                                     this.setState({readData: data});
-                                    if (data == parseInt('16')
-                                        || data == parseInt('17')
-                                        || data == parseInt('32')
-                                        || data == parseInt('33')) {
+                                    if (data == parseInt('254254'+cur_device+'16255')
+                                        || data == parseInt('254254'+cur_device+'17255')
+                                        || data == parseInt('254254'+cur_device+'32255')
+                                        || data == parseInt('254254'+cur_device+'33255')) {
                                         this.setState({
                                             power: false,
                                         });
@@ -851,18 +851,18 @@ class testBlueTooth extends Component {
                             : '可用设备:'
                     }
                 </Text>
-                {this.state.isConnected ?
-                    this.state.power ?
-                        <ImageBackground style={[styles.devicestate, {flex: 1}]}
-                                         source={require('./src/powerisok.png')}>
-                            {/*<BasicButton name='XDirection_FLE445' navigate={navigate}/>*/}
-                        </ImageBackground>
-                        : <ImageBackground style={[styles.devicestate, {flex: 1}]}
-                                           source={require('./src/powerislow.png')}>
-                            {/*<BasicButton name='XDirection_FLE445' navigate={navigate}/>*/}
-                        </ImageBackground>
-                    : <View/>
-                }
+                {/*{this.state.isConnected ?*/}
+                    {/*this.state.power ?*/}
+                        {/*<ImageBackground style={[styles.devicestate, {flex: 1}]}*/}
+                                         {/*source={require('./src/powerisok.png')}>*/}
+                            {/*/!*<BasicButton name='XDirection_FLE445' navigate={navigate}/>*!/*/}
+                        {/*</ImageBackground>*/}
+                        {/*: <ImageBackground style={[styles.devicestate, {flex: 1}]}*/}
+                                           {/*source={require('./src/powerislow.png')}>*/}
+                            {/*/!*<BasicButton name='XDirection_FLE445' navigate={navigate}/>*!/*/}
+                        {/*</ImageBackground>*/}
+                    {/*: <View/>*/}
+                {/*}*/}
 
             </View>
         )
@@ -939,7 +939,23 @@ class testBlueTooth extends Component {
                             case '2'://93t-1
                                 return (
                                     <View key={index} style={{flex: 10}}>
-                                        <View style={{flex: 1}}/>
+                                        <View style={{flex: 17, flexDirection: 'row', borderWidth: 0}}>
+                                            <View style={{
+                                                flex: 10,
+                                                justifyContent: 'center',
+                                            }}>
+                                                {this.state.power?
+                                                    <Image style={[styles.devicestate, {flex: 1}]}
+                                                           source={require('./src/powerisok.png')}>
+                                                        {/*<NewTypeButton name='left' navigate={navigate}/>*/}
+                                                    </Image>
+                                                    :<Image style={[styles.devicestate, {flex: 1}]}
+                                                            source={require('./src/powerislow.png')}>
+                                                        {/*<NewTypeButton name='left' navigate={navigate}/>*/}
+                                                    </Image>
+                                                }
+                                            </View>
+                                        </View>
 
                                         <View style={{flex: 10, flexDirection: 'row'}}>
                                             <View style={{flex: 1}}/>
@@ -974,7 +990,24 @@ class testBlueTooth extends Component {
                             case '1' ://
                                 return (
                                     <View key={index} style={{flex: 10}}>
-                                        <View style={{flex: 1}}/>
+
+                                        <View style={{flex: 17, flexDirection: 'row', borderWidth: 0}}>
+                                            <View style={{
+                                                flex: 10,
+                                                justifyContent: 'center',
+                                            }}>
+                                                {this.state.power?
+                                                    <Image style={[styles.devicestate, {flex: 1}]}
+                                                           source={require('./src/powerisok.png')}>
+                                                        {/*<NewTypeButton name='left' navigate={navigate}/>*/}
+                                                    </Image>
+                                                    :<Image style={[styles.devicestate, {flex: 1}]}
+                                                            source={require('./src/powerislow.png')}>
+                                                        {/*<NewTypeButton name='left' navigate={navigate}/>*/}
+                                                    </Image>
+                                                }
+                                            </View>
+                                        </View>
                                         <View style={{flex: 10, flexDirection: 'row'}}>
                                             <View style={{flex: 5}}/>
                                             <ImageBackground style={styles.mybutton1}
@@ -1016,11 +1049,26 @@ class testBlueTooth extends Component {
                                 break;
                             case  '3' ://fre 203x-1
                                 return (
-                                    <View key={index} style={[styles.container, {}]}>
-                                        {/*<View style={{flex: 17,borderWidth:1}}/>*/}
-                                        <View style={{flex: 1, alignItems: 'flex-end', borderWidth: 1}}>
+                                    <View key={index} style={[styles.container, {borderWidth: 0}]}>
 
+                                        <View style={{flex: 17, flexDirection: 'row', borderWidth: 0}}>
+                                            <View style={{
+                                                flex: 10,
+                                                justifyContent: 'center',
+                                            }}>
+                                                {this.state.power?
+                                                    <Image style={[styles.devicestate, {flex: 1}]}
+                                                           source={require('./src/powerisok.png')}>
+                                                        {/*<NewTypeButton name='left' navigate={navigate}/>*/}
+                                                    </Image>
+                                                    :<Image style={[styles.devicestate, {flex: 1}]}
+                                                            source={require('./src/powerislow.png')}>
+                                                        {/*<NewTypeButton name='left' navigate={navigate}/>*/}
+                                                    </Image>
+                                                }
+                                            </View>
                                         </View>
+
                                         <View style={{flex: 17, flexDirection: 'row',}}>
                                             <View style={{
                                                 flex: 10, alignItems: 'flex-end',
@@ -1062,7 +1110,6 @@ class testBlueTooth extends Component {
                                                 </ImageBackground>
                                                 <View style={{flex: 15}}/>
                                             </View>
-
                                         </View>
 
                                         <View style={{flex: 19, flexDirection: 'row',}}>
@@ -1140,8 +1187,6 @@ class testBlueTooth extends Component {
                                             </View>
                                             <View style={{flex: 6,}}/>
                                         </View>
-                                        <View style={{flex: 12,}}/>
-
                                     </View>
                                 );
                                 break;
@@ -1281,48 +1326,48 @@ class testBlueTooth extends Component {
 
                     } else if (item == this.char1) {
                         GLOBAL.index_char1 = index;
-                       /* return (
-                            <View key={index}>
-                                <TouchableOpacity
-                                    key={index}
-                                    activeOpacity={0.7}
-                                    style={styles.buttonView}
-                                    onPress={() => {
-                                        //onPress(index);
-                                        /!*if (this.timer == null) {
-                                            this.alert('开启连续发送，每隔0.5s往' + item + '发送0x10');
-                                            setTimeout(
-                                                () => {
-                                                    let request = this.request;
-                                                    request.data = 'fefe0121ff';
-                                                    request.index = index_char1;
-                                                    request.request_Type = 3;
-                                                    request_Queue.push(request);
+                        /* return (
+                             <View key={index}>
+                                 <TouchableOpacity
+                                     key={index}
+                                     activeOpacity={0.7}
+                                     style={styles.buttonView}
+                                     onPress={() => {
+                                         //onPress(index);
+                                         /!*if (this.timer == null) {
+                                             this.alert('开启连续发送，每隔0.5s往' + item + '发送0x10');
+                                             setTimeout(
+                                                 () => {
+                                                     let request = this.request;
+                                                     request.data = 'fefe0121ff';
+                                                     request.index = index_char1;
+                                                     request.request_Type = 3;
+                                                     request_Queue.push(request);
 
-                                                    // BluetoothManager.write('10', index)
-                                                    //     .catch(err => {
-                                                    //         this.alert('发送失败');
-                                                    //
-                                                    //     });
-                                                },
-                                                500
-                                            );
-                                        }*!/
+                                                     // BluetoothManager.write('10', index)
+                                                     //     .catch(err => {
+                                                     //         this.alert('发送失败');
+                                                     //
+                                                     //     });
+                                                 },
+                                                 500
+                                             );
+                                         }*!/
 
-                                    }}>
-                                    {/!* <Text style={styles.buttonText}>{buttonText} ({item})</Text>*!/}
-                                    <Text style={styles.buttonText}>开启连续发送</Text>
-                                </TouchableOpacity>
-                                {/!*<TextInput
-                                    style={[styles.textInput]}
-                                    value={this.state.text}
-                                    placeholder='请输入消息'
-                                    onChangeText={(text) => {
-                                        this.setState({text: text});
-                                    }}
-                                />*!/}
-                            </View>
-                        )*/
+                                     }}>
+                                     {/!* <Text style={styles.buttonText}>{buttonText} ({item})</Text>*!/}
+                                     <Text style={styles.buttonText}>开启连续发送</Text>
+                                 </TouchableOpacity>
+                                 {/!*<TextInput
+                                     style={[styles.textInput]}
+                                     value={this.state.text}
+                                     placeholder='请输入消息'
+                                     onChangeText={(text) => {
+                                         this.setState({text: text});
+                                     }}
+                                 />*!/}
+                             </View>
+                         )*/
                     }
                 })}
                 {/*<TextInput
